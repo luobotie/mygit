@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns="http://www.springframework.org/schema/beans" 
+xmlns:aop="http://www.springframework.org/schema/aop" 
+xmlns:context="http://www.springframework.org/schema/context" 
+xmlns:mvc="http://www.springframework.org/schema/mvc" 
+xmlns:tx="http://www.springframework.org/schema/tx" 
+xsi:schemaLocation="http://www.springframework.org/schema/beans 
+http://www.springframework.org/schema/beans/spring-beans-4.1.xsd 
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd 
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd 
+http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd 
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd ">
+
+<!-- 配置：映射器与适配器 -->
+	<mvc:annotation-driven></mvc:annotation-driven>
+	<!-- 视图解析器 /jsp/index.jsp <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"> 
+		<property name="prefix" value="/jsp/"></property> <property name="suffix" 
+		value=".jsp"></property> </bean> -->
+	<!-- 组件扫描：凡是在base-package包底下的子包，所有类都会扫描到 -->
+	<context:component-scan base-package="com.yidu"></context:component-scan>
+	<!-- 数据源 -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/test?characterEncoding=utf-8"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="123456"></property>
+	</bean>
+<!-- 	
+		数据源
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"></property>
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:ORCL"></property>
+		<property name="username" value="scott"></property>
+		<property name="password" value="scott"></property>
+	</bean> -->
+	
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 实体类的别名：默认用类名作为：mapper映射文件中的别名 -->
+		<property name="typeAliasesPackage" value="com.yidu.entity"></property>
+	</bean>
+	<!--接口扫描：mapper接口开发 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 如果需要扫描多个包，中间用逗号隔开 -->
+		<!-- basePackage:基础包 凡是这个包下面的接口：都扫描 -->
+		<property name="basePackage" value="com.yidu.mapper"></property>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+	</bean>
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 上传文件的尺寸 kb -->
+		<property name="maxUploadSize">
+			<value>500000000</value>
+		</property>
+		<property name="defaultEncoding" value="utf-8" />
+	</bean>
+	<!-- 配置日志切面 -->
+		<!-- 配置日志切面 -->
+	<aop:config>
+		<!-- 日志切面对象 ref：引用日志切面的对象 名字就是类名首字母小写 -->
+		<aop:aspect id="logAsp" ref="logAspect">
+				<!-- 切入点：那个点要切入日志切面  我们的切入点：biz所有方法：都要加日志
+				     expression：表达式 执行目标类路径
+				     execution:执行
+				     第一个：* 号 任意返回值
+				     第二个：* 号 所有类
+				     第三个： * 号 所有方法（..） 带任意参数
+				 -->
+			<aop:pointcut expression="execution(* com.yidu.biz.impl.*.*(..))" id="myCut"/>
+			<aop:before method="before" pointcut-ref="myCut"/>	
+			<aop:after method="after" pointcut-ref="myCut"/> 
+			<aop:around pointcut-ref="myCut" method="around"/>
+			<aop:after-returning pointcut-ref="myCut" method="afterReturning" returning="result"/>
+		</aop:aspect>
+	</aop:config>
+	<!-- aop:配置事务管理 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 那些方法加入事务 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" />
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="myPoint"
+			expression="execution(* com.yidu.biz.PersonBiz.*(..))" />
+		<aop:advisor pointcut-ref="myPoint" advice-ref="txAdvice" />
+	</aop:config>
+
+</beans>

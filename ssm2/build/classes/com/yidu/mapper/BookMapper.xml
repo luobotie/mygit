@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.yidu.mapper.BookMapper">
+      <!-- 根据书的id：查询书本的价格 -->
+      <select id="getBookPriceByBookId" parameterType="Integer" resultType="Integer">
+        select bookPrice from book where bookId=#{bookId}
+      </select>
+      <!-- 根据书的id：修改书的库存 -->
+      <update id="updeateBookStock" parameterType="Integer">
+     	 update bookStock set  bookStock=bookStock-1 where bookId=#{bookId}
+     </update>
+      <!-- 根据书的id：查询书的库存 -->
+     <select id="getBookStock" parameterType="Integer"  resultType="Integer">
+         select  bookStock from  bookStock where bookId=#{bookId}
+     </select>
+      <!-- 根据用户名：查询余额 -->
+     <select id="getBalance" parameterType="String"  resultType="Integer">
+         select  balance from  UserAccount where username =#{username}
+     </select>
+     <!-- 根据用户名：修改用户余额 -->
+      <update id="updateBalance" parameterType="Map">
+     	 update UserAccount set  balance=balance-#{price} where username=#{username}
+     </update>
+</mapper>

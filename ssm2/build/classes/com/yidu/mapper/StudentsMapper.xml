@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.yidu.mapper.StudentsMapper">
+	<select id="selectAllStu" resultType="Students">
+		select * from students
+	</select>
+	<select id="getCount" resultType="Integer">
+		select count(*) from students
+	</select>
+	<select id="loginStu" parameterType="Map" resultType="Students">
+		select * from students where stuName=#{stuName} and stuId=#{stuId}
+	</select>
+	<select id="getData" parameterType="PageArg" resultType="Students">
+		select * from students where stuId > (#{page}-1)*#{limit} limit
+		#{limit}
+		<!-- limit函数后面只能接常量不能接表达式 -->
+	</select>
+	<select id="moSelectName" parameterType="Map" resultType="Students">
+		select * from students
+		<where>
+			<if test="moName !=null and moName !=''">
+				stuName like BINARY '%${moName}%'
+			</if>
+		</where>
+		limit #{page},#{limit}
+	</select>
+	
+	<select id="getMoCount" parameterType="String" resultType="Integer">
+	 select count(*) from students 
+	 	<where>
+		 	<if test="_parameter !=null and _parameter !=''">
+		 		 stuName  like BINARY '%${value}%'
+		 	</if>
+	 	</where>
+    </select>
+
+	<insert id="addStudents" parameterType="Students">
+		insert into students (stuName,stuAge,stuAddress)
+		values(#{stuName},#{stuAge},#{stuAddress})
+	</insert>
+	<delete id="deleteBatch" parameterType="list">
+		delete from students where stuId in
+		<foreach collection="list" index="index" item="item" open="("
+			close=")" separator=",">
+			#{item}
+		</foreach>
+	</delete>
+	<delete id="deleteStudents" parameterType="Integer">
+		delete from students where stuId=#{stuId}
+	</delete>
+	<update id="updateStudents" parameterType="Students">
+		update students set
+		stuName=#{stuName},stuAge=#{stuAge},stuAddress=#{stuAddress} where
+		stuId=#{stuId}
+	</update>
+
+</mapper>
